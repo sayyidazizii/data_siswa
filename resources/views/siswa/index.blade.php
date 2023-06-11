@@ -16,9 +16,6 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="{{ asset('sidebar-01/css/style.css') }}">
 
-      {{-- dataTables --}}
-      <link href="{{ asset('assets/datatables/css/dataTables.bootstrap.min.css') }}" rel="stylesheet">
-
       {{-- SweetAlert2 --}}
       <script src="{{ asset('assets/sweetalert2/sweetalert2.min.js') }}"></script>
       <link href="{{ asset('assets/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet">
@@ -130,8 +127,7 @@
                                             </form>
                                         </li>
                                     </ul>
-                                </li>
-                            
+                                </li>  
                         </ul>
                     </div>
                 </div>
@@ -157,7 +153,7 @@
                                           <th>Nis</th>
                                           <th>Nama</th>
                                           <th>Kelas</th>
-                                          <th></th>
+                                          <th>Action</th>
                                       </tr>
                                   </thead>
                                   <tbody></tbody>
@@ -184,11 +180,11 @@
                                 </div>
                 
                                 <div class="modal-body">
-                                    <input type="hidden" id="id" name="id">
+                                    <input type="hidden" id="id" name="id_siswa">
                                     <div class="form-group">
                                         <label for="name" class="col-md-3 control-label">Nis</label>
                                         <div class="col-md-6">
-                                            <input type="text" id="nis" name="nis" class="form-control" autofocus required>
+                                            <input type="text" id="nis" name="nis_siswa" class="form-control" autofocus required>
                                             <span class="help-block with-errors"></span>
                                         </div>
                                     </div>
@@ -196,7 +192,7 @@
                                     <div class="form-group">
                                       <label for="email" class="col-md-3 control-label">Nama</label>
                                       <div class="col-md-6">
-                                          <input type="text" id="nama" name="nama" class="form-control" required>
+                                          <input type="text" id="nama" name="nama_siswa" class="form-control" required>
                                           <span class="help-block with-errors"></span>
                                       </div>
                                     </div>
@@ -204,7 +200,7 @@
                                     <div class="form-group">
                                         <label for="email" class="col-md-3 control-label">Kelas</label>
                                         <div class="col-md-6">
-                                            <select class="form-select" id="kelas" name="kelas">
+                                            <select class="form-select" id="kelas" name="kelas_siswa">
                                                 <option value="RPLA">RPLA</option>
                                                 <option value="RPLB">RPLB</option>
                                                 <option value="RPLC">RPLC</option>
@@ -224,8 +220,6 @@
                     </div>
                 </div>
                 {{-- END MODAL  --}}
-                
-          
         </div>
     </div>
 
@@ -240,10 +234,6 @@
     <script src="{{ asset('assets/jquery/jquery-1.12.4.min.js') }}"></script>
     <script src="{{ asset('assets/bootstrap/js/bootstrap.min.js') }}"></script>
 
-    {{-- dataTables --}}
-    <script src="{{ asset('assets/dataTables/js/jquery.dataTables.min.js') }}"></script>
-    {{-- <script src="{{ asset('assets/dataTables/js/dataTables.bootstrap.min.js') }}"></script> --}}
-
     {{-- Validator --}}
     <script src="{{ asset('assets/validator/validator.min.js') }}"></script>
 
@@ -251,18 +241,37 @@
     <script src="{{ asset('assets/bootstrap/js/ie10-viewport-bug-workaround.js') }}"></script>
 
     <script type="text/javascript">
-      var table = $('#siswa-table').DataTable({
-                      processing: true,
-                      serverSide: true,
-                      ajax: "{{ route('api.datasiswa') }}",
-                      columns: [
-                        {data: 'id_siswa', name: 'id_siswa'},
-                        {data: 'nis_siswa', name: 'nis_siswa'},
-                        {data: 'nama_siswa', name: 'nama_siswa'},
-                        {data: 'kelas_siswa', name: 'kelas_siswa'},
-                        {data: 'action', name: 'action', orderable: false, searchable: false},
-                      ]
+        $(document).ready(function(){
+            tampildata();
+        });
+
+        function tampildata(){
+            $('tbody').html('');
+            $.ajax({
+                url : "{{ route('api.datasiswa') }}",
+                type : 'GET',
+                dataType : 'json',
+                success : function(data){
+                    $.each(data, function(key, values){
+                        //console.log(data);
+                        id_siswa = data[key].id_siswa;
+                        nis_siswa = data[key].nis_siswa;
+                        nama_siswa = data[key].nama_siswa;
+                        kelas_siswa = data[key].kelas_siswa;
+                        $('tbody').append('<tr>\
+                            <td hidden>'+parseInt(key+1)+'</td>\
+                            <td>'+id_siswa+'</td>\
+                            <td>'+nis_siswa+'</td>\
+                            <td>'+nama_siswa+'</td>\
+                            <td>'+kelas_siswa+'</td>\
+                            <td><a class="btn btn-warning" onclick="editForm(' +id_siswa+ ')" >edit</a>\
+                                <a class="btn btn-danger" onclick="deleteData(' +id_siswa +')" ">delete</a>\
+                                </td>\
+                            ');
                     });
+                }
+            });
+        }
 
       function addForm() {
         save_method = "add";
@@ -272,12 +281,12 @@
         $('.modal-title').text('Add Siswa');
       }
 
-      function editForm(id) {
+      function editForm(id_siswa) {
         save_method = 'edit';
         $('input[name=_method]').val('PATCH');
         $('#modal-form form')[0].reset();
         $.ajax({
-          url: "{{ url('datasiswa') }}" + '/' + id + "/edit",
+          url: "{{ url('datasiswa') }}" + '/' + id_siswa + "/edit",
           type: "GET",
           dataType: "JSON",
           success: function(data) {
@@ -313,7 +322,7 @@
                   data : {'_method' : 'DELETE', '_token' :csrf_token},
                   success : function(data) {
                     // console.log(data);
-                      table.ajax.reload(); 
+                     tampildata();
                       swal({
                           title: 'Success!',
                           text: data.message,
@@ -337,19 +346,24 @@
             $('#modal-form form').validator().on('submit', function (e) {
                 if (!e.isDefaultPrevented()){
                     var id = $('#id').val();
+                    var nis_siswa = $('#id').val();
+                    var nama_siswa = $('#id').val();
+                    var kelas_siswa = $('#id').val();
+                    var token = $('input[name=_token]');
+                    
                     if (save_method == 'add') url = "{{ url('datasiswa') }}";
                     else url = "{{ url('datasiswa') . '/' }}" + id;
+
 
                     $.ajax({
                         url : url,
                         type : "POST",
-//                        data : $('#modal-form form').serialize(),
                         data: new FormData($("#modal-form form")[0]),
                         contentType: false,
                         processData: false,
                         success : function(data) {
                             $('#modal-form').modal('hide');
-                            table.ajax.reload();
+                            tampildata();
                             swal({
                                 title: 'Success!',
                                 text: data.message,

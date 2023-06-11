@@ -25,12 +25,6 @@ class SiswaController extends Controller
         if (!Auth::user()) {
             return redirect()->route('login');
         }       
-        // $data = $this->apiSiswa();
-        // return response()->json([
-        //     'success' => true,
-        //     'message' => 'Data Created',
-        //     'data'  => $data,
-        // ]);
         return view('siswa.index');
     }
 
@@ -54,18 +48,11 @@ class SiswaController extends Controller
     {
         DB::table('siswas')
             ->insert([
-                'nis' => $request->nis,
-                'nama' => $request->nama,
-                'kelas' => $request->kelas
+                'nis_siswa' => $request['nis_siswa'],
+                'nama_siswa' => $request['nama_siswa'],
+                'kelas_siswa' => $request['kelas_siswa'],
             ]);
         
-        
-        // ->select("select public.insertdata(
-        //     '$request->nis', 
-        //     '$request->nama', 
-        //     '$request->kelas'
-        // )");
-
         return response()->json([
             'success' => true,
             'message' => 'Data Created',
@@ -91,8 +78,8 @@ class SiswaController extends Controller
      */
     public function edit($id)
     {
-        $siswa = DB::select("select * from public.getbyid('$id')");
 
+       $siswa = DB::select("select * from siswas where id_siswa = ('$id')");
         return response()->json($siswa);
     }
 
@@ -106,17 +93,17 @@ class SiswaController extends Controller
     public function update(Request $request, $id)
     {
         DB::table('siswas')
-        ->where('id', $id)
+        ->where('id_siswa', $id)
         ->update([
-            'nis' => $request['nis'],
-            'nama' => $request['nama'],
-            'kelas' => $request['kelas'],
+            'nis_siswa' => $request['nis_siswa'],
+            'nama_siswa' => $request['nama_siswa'],
+            'kelas_siswa' => $request['kelas_siswa'],
         ]);
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Data Updated'
-    ]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Updated'
+        ]);
     }
 
     /**
@@ -127,23 +114,17 @@ class SiswaController extends Controller
      */
     public function destroy($id)
     {
-        DB::select("select * from deletedata('$id')");
 
-        // DB::table('siswas')
-        // ->where('id', '=', $id)
-        // ->delete();
+        DB::table('siswas')
+        ->where('id_siswa', $id)
+        ->delete();
     }
 
 
-    public function apiSiswa()
+    public function api()
     {
-        $siswa = DB::select('select * from public.getdatasiswa()');
-        return Datatables::of($siswa)
-            ->addColumn('action', function ($siswa) {
-                return
-                    '<a onclick="editForm(' . $siswa->id_siswa . ')" class="btn btn-primary text-light btn-xs"><i class="glyphicon glyphicon-edit"></i> Edit</a> ' .
-                    '<a onclick="deleteData(' . $siswa->id_siswa . ')" class="btn btn-danger text-light btn-xs"><i class="glyphicon glyphicon-trash"></i> Delete</a>';
-            })->make(true);
+        $data = Siswa::all();
+        return response()->json($data);
     }
 
     //export data 
@@ -198,14 +179,14 @@ class SiswaController extends Controller
         $sheet->getRowDimension('2')->setRowHeight(20);
         $sheet->getRowDimension('3')->setRowHeight(20);
         //Buat query untuk menampilkan semua data siswa
-        $sql = DB::table('siswas')->orderBy('id', 'DESC')->get();
+        $sql = DB::table('siswas')->orderBy('id_siswa', 'DESC')->get();
         $no = 1; // Untuk penomoran tabel, di awal set dengan 1
         $row = 4; // Set baris pertama untuk isi tabel adalah baris ke 4
         foreach ($sql as $data) { // Ambil semua data dari hasil eksekusi $sql
             $sheet->setCellValue('A' . $row, $no);
-            $sheet->setCellValue('B' . $row, $data->nis);
-            $sheet->setCellValue('C' . $row, $data->nama);
-            $sheet->setCellValue('D' . $row, $data->kelas);
+            $sheet->setCellValue('B' . $row, $data->nis_siswa);
+            $sheet->setCellValue('C' . $row, $data->nama_siswa);
+            $sheet->setCellValue('D' . $row, $data->kelas_siswa);
 
             // Apply style row yang telah kita buat tadi ke masing-masing baris (isi tabel)
             $sheet->getStyle('A' . $row)->applyFromArray($style_row);
@@ -243,15 +224,15 @@ class SiswaController extends Controller
      */
     function exportSiswa()
     {
-        $data = DB::table('siswas')->orderBy('id', 'DESC')->get();
+        $data = DB::table('siswas')->orderBy('id_siswa', 'DESC')->get();
         // return response()->json($data);
         $data_array[] = array("ID", "Nis", "Nama", "Kelas");
         foreach ($data as $data_item) {
             $data_array[] = array(
-                'ID' => $data_item->id,
-                'Nis' => $data_item->nis,
-                'Nama' => $data_item->nama,
-                'Kelas' => $data_item->kelas,
+                'ID' => $data_item->id_siswa,
+                'Nis' => $data_item->nis_siswa,
+                'Nama' => $data_item->nama_siswa,
+                'Kelas' => $data_item->kelas_siswa,
             );
         }
         $this->ExportExcel($data_array);
